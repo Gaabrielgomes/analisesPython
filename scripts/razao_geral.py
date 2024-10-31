@@ -44,7 +44,7 @@ def realizar_consulta():
             finally:
                 cursor_cliente.close()
         else:
-            cliente = list(map(int, identif_cliente.split(',')))
+            cliente = entrada_cliente.get()
 
         numConta = entrada_numConta.get()  # Obtendo o número da conta (opcional)
 
