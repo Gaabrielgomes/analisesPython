@@ -1,3 +1,6 @@
 venv
 queries.py
 connection.py
+export/
+import/
+__pycache__/
