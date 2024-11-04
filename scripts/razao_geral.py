@@ -28,17 +28,23 @@ def realizar_consulta():
         início = entrada_inicio.get()
         fim = entrada_fim.get()
         identif_cliente = entrada_cliente.get()
-        print(identif_cliente)
+
         if ',' not in identif_cliente and not identif_cliente.isnumeric():
+            
+            identif_cliente = '%' + identif_cliente + '%'
+
             cursor_cliente = conexão.cursor()
             try:
                 cursor_cliente.execute(obter_cliente, (identif_cliente))
                 resultados = cursor_cliente.fetchall()
+                print(resultados)
+                
                 colunasResultados = [colRes[0] for colRes in cursor_cliente.description]
                 códigosObtidos = pd.DataFrame.from_records(resultados, columns=colunasResultados)
-                códigosCliente = list(códigosObtidos['codi_emp'])
-                cliente = ', '.join(map(str, códigosCliente)).rstrip(', ')
-                print(cliente)
+                cliente = [f'{codigo}' for codigo in list(códigosObtidos['codi_emp'])]
+
+                adicionaVariáveis = ', '.join('?' for código in cliente)
+
             except Exception as erroBusca:
                 messagebox.showinfo("Erro", f"{str(erroBusca)}")
             finally:
@@ -50,21 +56,23 @@ def realizar_consulta():
 
         # Verifica se a conta está preenchida
         if numConta == "":
-            tipoConta = entrada_tipoConta.get()  # Obtendo o tipo de conta
-            parâmetros = (cliente, início, fim, tipoConta, cliente, início, fim, tipoConta)
-            consulta = razão_geral
+            tipoConta = str(entrada_tipoConta.get()) + '%'  # Obtendo o tipo de conta
+            parâmetros = (*cliente, início, fim, tipoConta, *cliente, início, fim, tipoConta)
+            consulta = razão_geral.replace("IN (?)", f"IN ({adicionaVariáveis})")
         else:
-            parâmetros = (cliente, início, fim, numConta, cliente, início, fim, numConta)
-            consulta = razão_básico
+            parâmetros = (*cliente, início, fim, numConta, *cliente, início, fim, numConta)
+            consulta = razão_básico.replace("IN (?)", f"IN ({adicionaVariáveis})")
 
         # Consulta de saldo
         cursorSaldo = conexão.cursor()
 
         try:
             if numConta == "":
-                cursorSaldo.execute(obter_saldo_tipoconta, (cliente, início, tipoConta, cliente, início, tipoConta))
+                consulta_saldo = obter_saldo_tipoconta.replace("IN (?)", f"IN ({adicionaVariáveis})")
+                cursorSaldo.execute(consulta_saldo, (*cliente, início, tipoConta, *cliente, início, tipoConta))
             else:
-                cursorSaldo.execute(obter_saldo, (cliente, início, numConta, cliente, início, numConta))
+                consulta_saldo = obter_saldo.replace("IN (?)", f"IN ({adicionaVariáveis})")
+                cursorSaldo.execute(consulta_saldo, (*cliente, início, numConta, *cliente, início, numConta))
 
             linhaSaldo = cursorSaldo.fetchone()
             if linhaSaldo:
@@ -77,10 +85,8 @@ def realizar_consulta():
 
         except Exception as error:
             print(str(error))
-            messagebox.showinfo("Erro", f"Erro ao buscar saldo: {str(error)}")
         finally:
             cursorSaldo.close()
-
 
         # Consulta ao Banco
         cursor = conexão.cursor()
@@ -151,13 +157,13 @@ def exportar_dados(dataFrame, débito, crédito, saldo, saldoAtual):
                 for linha in dataFrame.itertuples(index=False, name=None):
                     planilha.append(linha)
 
-                planilha['H1'] = 'DÉBITO'
-                planilha['H2'] = débito
-                planilha['I1'] = 'CRÉDITO'
-                planilha['I2'] = crédito
-                planilha['H3'] = 'SALDO ANTERIOR'
-                planilha['H4'] = saldo
-                planilha['I3'] = 'SALDO ATUAL'
+                planilha['H1'] = 'SALDO ANTERIOR'
+                planilha['H2'] = 'DÉBITO'
+                planilha['H3'] = 'CRÉDITO'
+                planilha['H4'] = 'SALDO ATUAL'
+                planilha['I1'] = saldo
+                planilha['I2'] = débito
+                planilha['I3'] = crédito
                 planilha['I4'] = saldoAtual
 
                 novaPasta.save(caminhoCompExport)
@@ -200,7 +206,7 @@ if conexão:
     entrada_fim.grid(row=1, column=1, padx=10, pady=5)
 
     # Entrada para o nome ou código do cliente
-    tk.Label(bloco_ações, text="Cliente(código ou nome/razSocial):").grid(row=3, column=0, padx=10, pady=5)
+    tk.Label(bloco_ações, text="Cliente (código ou nome/razão social):").grid(row=3, column=0, padx=10, pady=5)
     entrada_cliente = tk.Entry(bloco_ações)
     entrada_cliente.grid(row=3, column=1, padx=10, pady=5)
 
