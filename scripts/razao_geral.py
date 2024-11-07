@@ -3,7 +3,7 @@ import os
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from connection import connect_database
-from queries import razão_básico, razão_geral, obter_cliente, obter_saldo, obter_saldo_tipoconta
+import queries
 from openpyxl import Workbook
 
 # Conectando ao banco de dados
@@ -35,7 +35,7 @@ def realizar_consulta():
 
             cursor_cliente = conexão.cursor()
             try:
-                cursor_cliente.execute(obter_cliente, (identif_cliente))
+                cursor_cliente.execute(queries.obter_cliente, (identif_cliente))
                 resultados = cursor_cliente.fetchall()
                 print(resultados)
                 
@@ -58,20 +58,20 @@ def realizar_consulta():
         if numConta == "":
             tipoConta = str(entrada_tipoConta.get()) + '%'  # Obtendo o tipo de conta
             parâmetros = (*cliente, início, fim, tipoConta, *cliente, início, fim, tipoConta)
-            consulta = razão_geral.replace("IN (?)", f"IN ({adicionaVariáveis})")
+            consulta = queries.razão_geral.replace("IN (?)", f"IN ({adicionaVariáveis})")
         else:
             parâmetros = (*cliente, início, fim, numConta, *cliente, início, fim, numConta)
-            consulta = razão_básico.replace("IN (?)", f"IN ({adicionaVariáveis})")
+            consulta = queries.razão_básico.replace("IN (?)", f"IN ({adicionaVariáveis})")
 
         # Consulta de saldo
         cursorSaldo = conexão.cursor()
 
         try:
             if numConta == "":
-                consulta_saldo = obter_saldo_tipoconta.replace("IN (?)", f"IN ({adicionaVariáveis})")
+                consulta_saldo = queries.obter_saldo_tipoconta.replace("IN (?)", f"IN ({adicionaVariáveis})")
                 cursorSaldo.execute(consulta_saldo, (*cliente, início, tipoConta, *cliente, início, tipoConta))
             else:
-                consulta_saldo = obter_saldo.replace("IN (?)", f"IN ({adicionaVariáveis})")
+                consulta_saldo = queries.obter_saldo.replace("IN (?)", f"IN ({adicionaVariáveis})")
                 cursorSaldo.execute(consulta_saldo, (*cliente, início, numConta, *cliente, início, numConta))
 
             linhaSaldo = cursorSaldo.fetchone()
