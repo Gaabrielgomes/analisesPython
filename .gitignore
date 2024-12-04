@@ -4,3 +4,5 @@ connection.py
 export/
 import/
 __pycache__/
+.env
+prompt_cases.json
