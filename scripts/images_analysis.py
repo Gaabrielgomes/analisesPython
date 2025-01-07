@@ -66,7 +66,7 @@ def correct_address_by_zip(zip_code, image_address, minimum_similarity=0.8, max_
 
 
 # Load environment variables
-dotenv_path = r'C:\Users\Gabriel\Desktop\analises_escritorio\.env'
+dotenv_path = r'your\dotenv\path'
 load_dotenv(dotenv_path=dotenv_path)
 
 # API configurations
@@ -82,15 +82,15 @@ safety_settings = [{"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": 
 model = genai.GenerativeModel(model_name="gemini-1.5-flash", safety_settings=safety_settings)
 
 try:
-    with open('../prompt_cases.json', 'r', encoding='utf-8') as file:
+    with open('../json_prompts', 'r', encoding='utf-8') as file:
         prompts = json.load(file)
 except Exception as Error:
     print(f"Error loading 'prompt_cases.json': {Error}")
     exit()
 
 # Images directories
-images_directory = r'C:\Users\Gabriel\Desktop\analises_escritorio\import\images'
-resized_directory = r'C:\Users\Gabriel\Desktop\analises_escritorio\import\resized_images'
+images_directory = r'images\directory'
+resized_directory = r'resized_images\directory'
 
 # If resized_directory does not exist, create it
 os.makedirs(resized_directory, exist_ok=True)
