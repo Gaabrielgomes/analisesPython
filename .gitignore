@@ -1,6 +1,8 @@
 venv
 queries.py
 connection.py
+tests.py
+tests2.py
 export/
 import/
 __pycache__/
